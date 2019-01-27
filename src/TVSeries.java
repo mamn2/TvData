@@ -64,6 +64,10 @@ public class TVSeries {
 
     }
 
+    public TVEpisode createNewEpisode() {
+        return new TVEpisode();
+    }
+
     public String getName() {
         return name;
     }
@@ -128,9 +132,42 @@ public class TVSeries {
             return summary;
         }
 
-        @Override
-        public String toString() {
-            return "S" + season + "E" + number + name;
+        public void setName(String name) {
+            this.name = name;
         }
+
+        public void setSeason(int season) {
+            this.season = season;
+        }
+
+        public void setNumber(int number) {
+            this.number = number;
+        }
+
+        public void setAirdate(String airdate) {
+            this.airdate = airdate;
+        }
+
+        public void setSummary(String summary) {
+            this.summary = summary;
+        }
+
+        @Override
+        public boolean equals(final Object episode) {
+
+            if (!(episode instanceof TVEpisode)) {
+                return false;
+            }
+
+            TVEpisode otherEpisode = (TVEpisode) episode;
+
+            return this.name.equals(otherEpisode.getEpisodeName())
+                    && this.season == otherEpisode.getSeason()
+                    && this.number == otherEpisode.getNumber()
+                    && this.airdate.equals(otherEpisode.getAirdate())
+                    && this.summary.equals(otherEpisode.getSummary());
+
+        }
+
     }
 }
