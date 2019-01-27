@@ -1,9 +1,8 @@
 import com.google.gson.Gson;
-import org.junit.Before;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.Test;
-
-import javax.management.DescriptorAccess;
-
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -12,15 +11,47 @@ import static org.junit.Assert.assertTrue;
 
 public class TVSeriesTest {
 
-    //Gson object is created for loading the JSON data into a String.
-    private static Gson loadData = new Gson();
+    //Loads JSON data about the TV Series into form of a TVSeries object. Info retrieved from "Data" folder.
+    private static final TVSeries GAME_OF_THRONES = deserializeData("GameOfThrones");
+    private static final TVSeries HOMELAND = deserializeData("Homeland");
 
-    //Contains information about the TV Series in form of a TVSeries object.
-    //Information is retrieved from files in the Data folder
-    private static final TVSeries GAME_OF_THRONES = loadData
-            .fromJson(Data.getFileContentsAsString("GameOfThronesJSON"), TVSeries.class);
-    private static final TVSeries HOMELAND = loadData
-            .fromJson(Data.getFileContentsAsString("HomelandJSON"), TVSeries.class);
+    public static TVSeries deserializeData(String tvShow) {
+
+        JsonObject tvShowData = new JsonParser().parse(Data.getFileContentsAsString(tvShow)).getAsJsonObject();
+
+        TVSeries tvSeries = new TVSeries();
+
+        tvSeries.setName(tvShowData.get("name").getAsString());
+
+        tvSeries.setAverageRating(tvShowData.get("rating").getAsJsonObject().get("average").getAsInt());
+
+        tvSeries.setLanguage(tvShowData.get("language").getAsString());
+
+        tvSeries.setNetwork(tvShowData.get("network").getAsJsonObject().get("name").getAsString());
+
+        tvSeries.setPremiered(tvShowData.get("premiered").getAsString());
+
+        tvSeries.setSummary(tvShowData.get("summary").getAsString());
+
+        //Since genres is a JsonArray, we loop through it to convert to a java array
+        String[] genres = new String[tvShowData.get("genres").getAsJsonArray().size()];
+        for (int i = 0; i < genres.length; i++) {
+            genres[i] = tvShowData.get("genres").getAsJsonArray().get(i).getAsString();
+        }
+        tvSeries.setGenres(genres);
+
+        TVSeries.TVEpisode[] episodes = new TVSeries.TVEpisode[tvShowData.get("_embedded").getAsJsonObject()
+                                                                         .get("episodes").getAsJsonArray().size()];
+        for (int i = 0; i < episodes.length; i++) {
+            Gson gson = new Gson();
+            episodes[i] = gson.fromJson(tvShowData.get("_embedded").getAsJsonObject()
+                                                  .get("episodes").getAsJsonArray().get(i), TVSeries.TVEpisode.class);
+        }
+        tvSeries.setEpisodes(episodes);
+
+        return tvSeries;
+
+    }
 
 
     @Test
@@ -32,7 +63,8 @@ public class TVSeriesTest {
     @Test
     public void getGenreTest() {
         //Ensures that one of the contents of the genres array is "Drama"
-        assertTrue("Drama", Arrays.asList(GAME_OF_THRONES.getGenres()).contains("Drama"));
+        assertTrue(Arrays.asList(GAME_OF_THRONES.getGenres()).contains("Drama"));
+        assertTrue(Arrays.asList(HOMELAND.getGenres()).contains("Drama") );
     }
 
     @Test
@@ -67,7 +99,7 @@ public class TVSeriesTest {
 
     @Test
     public void getEpisodeNameTest() {
-        //assertEquals("Pilot", HOMELAND.getEpisodes()[0].getName());
+        //assertEquals("Pilot", HOMELAND.getEpisodes().getEpisodes().get(1).getName());
     }
 
     @Test
