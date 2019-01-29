@@ -1,5 +1,8 @@
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.*;
 
@@ -34,6 +37,12 @@ public class TVSeries {
     may have different lengths and season/episodes start at 0 instead of 1 */
     private TVEpisode[][] episodes;
 
+    public TVSeries (String seriesName) {
+
+        this.seriesName = seriesName;
+
+    }
+
     /**
      * This constructor deserializes a JSON object into a Java TVSeries object.
      * @param tvSeriesJSON is information about a TVSeries in the form of a JSON Object
@@ -57,12 +66,12 @@ public class TVSeries {
         this.setGenres(genres);
 
         //Since the episodes are stored in a JsonArray, we loop through it to convert it to a java array
-        TVEpisode[] episodes = new TVEpisode[tvSeriesJSON.get("_embedded").getAsJsonObject()
-                                                         .get("episodes").getAsJsonArray().size()];
+        JsonArray episodeElements = tvSeriesJSON.get("_embedded").getAsJsonObject()
+                                                .get("episodes").getAsJsonArray();
+        TVEpisode[] episodes = new TVEpisode[episodeElements.size()];
         for (int i = 0; i < episodes.length; i++) {
-            episodes[i] = new Gson().fromJson(tvSeriesJSON.get("_embedded").getAsJsonObject()
-                            .get("episodes").getAsJsonArray().get(i),
-                    TVEpisode.class);
+            episodes[i] = new Gson().fromJson(episodeElements.get(i), TVEpisode.class);
+            episodes[i].setRuntimeInMinutes(episodeElements.get(i).getAsJsonObject().get("runtime").getAsInt());
         }
         this.setEpisodes(episodes);
 
@@ -132,10 +141,13 @@ public class TVSeries {
      * @throws IllegalArgumentException if the season/episode combo does not exist.
      */
     public TVEpisode getEpisode(int seasonNum, int episodeNum) throws IllegalArgumentException {
-        if (seasonNum > episodes.length || episodeNum > episodes[seasonNum - 1].length) {
-            throw new IllegalArgumentException();
+
+        try {
+            return episodes[seasonNum - 1][episodeNum - 1];
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Season/Episode number does not exist");
         }
-        return episodes[seasonNum - 1][episodeNum - 1];
+
     }
 
     /**
@@ -155,7 +167,7 @@ public class TVSeries {
 
         for (TVEpisode[] season : episodes) {
             for (TVEpisode episode : season) {
-                if (episode != null && episode.getAirdate().equals(date)) {
+                if (episode != null && episode.getAirdate() != null && episode.getAirdate().equals(date)) {
                     return episode;
                 }
             }
@@ -229,7 +241,6 @@ public class TVSeries {
     public void setEpisodes(TVEpisode[] episodes) throws NullPointerException {
 
         if (episodes != null) {
-            this.episodes = null;
 
             //calculates how many seasons there are by going through the episodes and checking their season number
             int numSeasons = 1;
@@ -287,17 +298,19 @@ public class TVSeries {
     public void addNewEpisode(TVEpisode newEpisode) {
 
         //Copy current episodes to a list
-        LinkedList<TVEpisode> currentEpisodeList = new LinkedList<>();
-        for (TVEpisode[] season : episodes) {
-            Collections.addAll(currentEpisodeList, season);
+        LinkedList<TVEpisode> newEpisodeList = new LinkedList<>();
+
+        if (this.episodes != null && this.episodes.length != 0) {
+            for (TVEpisode[] season : episodes) {
+                Collections.addAll(newEpisodeList, season);
+            }
         }
 
         //Add the new episode to the list
-        currentEpisodeList.add(newEpisode);
+        newEpisodeList.add(newEpisode);
 
         //Uses the setEpisodes function to reinitialize episodes array
-        TVEpisode[] newEpisodeList = currentEpisodeList.toArray(new TVEpisode[currentEpisodeList.size()]);
-        this.setEpisodes(newEpisodeList);
+        this.setEpisodes(newEpisodeList.toArray(new TVEpisode[newEpisodeList.size()]));
 
     }
 
@@ -322,18 +335,31 @@ public class TVSeries {
 
     }
 
+    public TVEpisode[] getEpisodesInSeason(int seasonNum) throws IllegalArgumentException {
+
+        try {
+            return episodes[seasonNum - 1];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("Season does not exist");
+        }
+
+    }
+
     /**
      * Filter function to find all the season premiere episodes of a given instance TVSeries.
      * @return all the season premiere episodes of a given instance.
      */
     public TVEpisode[] getSeasonPremiereEpisodes() {
 
-        TVEpisode[] seasonPremiereEpisodes = new TVEpisode[episodes.length];
-        for (int i = 0; i < seasonPremiereEpisodes.length; i++) {
-            seasonPremiereEpisodes[i] = episodes[i][0];
+        if (episodes != null) {
+            TVEpisode[] seasonPremiereEpisodes = new TVEpisode[episodes.length];
+            for (int i = 0; i < seasonPremiereEpisodes.length; i++) {
+                seasonPremiereEpisodes[i] = episodes[i][0];
+            }
+            return seasonPremiereEpisodes;
+        } else {
+            return null;
         }
-
-        return seasonPremiereEpisodes;
 
     }
 
@@ -356,6 +382,9 @@ public class TVSeries {
 
         //A short summary of what happens in the episode.
         private String summary;
+
+        //Runtime in minutes of the episode
+        private int runtimeInMinutes;
 
         /**
          * Getter for name instance variable.
@@ -395,6 +424,14 @@ public class TVSeries {
          */
         public String getSummary() {
             return summary;
+        }
+
+        /**
+         * Getter for the runtime instance variable.
+         * @return total runtime of the episode in minutes
+         */
+        public int getRuntimeInMinutes() {
+            return runtimeInMinutes;
         }
 
         /**
@@ -440,9 +477,17 @@ public class TVSeries {
         }
 
         /**
-         * TVEpisode equality comparison
-         * @param otherObject is the other episode or object being compared
-         * @return
+         * Setter for the runtime field.
+         * @param runtimeInMinutes is the runtime of the episode in minutes.
+         */
+        public void setRuntimeInMinutes(int runtimeInMinutes) {
+            this.runtimeInMinutes = runtimeInMinutes;
+        }
+
+        /**
+         * TVEpisode equality comparison. All fields must be initalized for this to work.
+         * @param otherObject is the other episode or object being compared.
+         * @return true if they are equal, false if they are not.
          */
         @Override
         public boolean equals(final Object otherObject) {
@@ -454,12 +499,18 @@ public class TVSeries {
 
             TVEpisode otherEpisode = (TVEpisode) otherObject;
 
-            //Ensures that all fields of the episode are equal to each other.
-            return this.name.equals(otherEpisode.getEpisodeName())
+            /* Ensures that all fields of the episode are equal to each other.
+            Could throw exception if some fields are null in which case it is false. */
+            try {
+                return this.name.equals(otherEpisode.getEpisodeName())
                     && this.season == otherEpisode.getSeason()
                     && this.number == otherEpisode.getNumber()
                     && this.airdate.equals(otherEpisode.getAirdate())
-                    && this.summary.equals(otherEpisode.getSummary());
+                    && this.summary.equals(otherEpisode.getSummary())
+                    && this.runtimeInMinutes == otherEpisode.getRuntimeInMinutes();
+            } catch (Exception e) {
+                return false;
+            }
 
         }
 

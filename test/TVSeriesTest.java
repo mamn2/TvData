@@ -10,6 +10,7 @@ public class TVSeriesTest {
             new JsonParser().parse(Data.getFileContentsAsString("GameOfThrones")).getAsJsonObject());
     private static final TVSeries HOMELAND = new TVSeries(
             new JsonParser().parse(Data.getFileContentsAsString("Homeland")).getAsJsonObject());
+    private static final TVSeries CONTROL_SERIES = new TVSeries("An empty series");
 
     @Test
     public void getSeriesNameTest() throws AssertionError {
@@ -19,20 +20,21 @@ public class TVSeriesTest {
     }
 
     @Test
-    public void getGenreTest() throws AssertionError {
+    public void getNullSeriesNameTest() throws AssertionError {
 
-        //Tests for random value in genre array
-        assertTrue(Arrays.asList(GAME_OF_THRONES.getGenres()).contains("Fantasy") );
+        CONTROL_SERIES.setSeriesName(null);
+        assertNull(CONTROL_SERIES.getSeriesName());
+        CONTROL_SERIES.setSeriesName("An empty series");
 
     }
 
     @Test
     public void setNullEpisode() throws AssertionError {
 
-        boolean exceptionThrown= false;
+        boolean exceptionThrown = false;
         try {
-            TVSeries.TVEpisode[] nullArray = new TVSeries.TVEpisode[1];
-            GAME_OF_THRONES.setEpisodes(nullArray);
+            TVSeries.TVEpisode[] nullContents = new TVSeries.TVEpisode[1];
+            GAME_OF_THRONES.setEpisodes(nullContents);
         } catch (Exception e) {
             exceptionThrown = true;
         }
@@ -41,10 +43,17 @@ public class TVSeriesTest {
     }
 
     @Test
-    public void getGenreArrayTest() throws AssertionError {
+    public void getGenresTest() throws AssertionError {
 
         //Tests all genres in genre array
         assertArrayEquals(new String[] { "Drama", "Thriller", "Espionage" }, HOMELAND.getGenres());
+
+    }
+
+    @Test
+    public void getNullGenresTest() throws AssertionError {
+
+        assertNull(CONTROL_SERIES.getGenres());
 
     }
 
@@ -56,9 +65,23 @@ public class TVSeriesTest {
     }
 
     @Test
+    public void getNullLanguageTest() throws AssertionError {
+
+        assertNull(CONTROL_SERIES.getLanguage());
+
+    }
+
+    @Test
     public void getPremiereTest() throws AssertionError {
 
         assertEquals("2011-10-02", HOMELAND.getPremiereDate());
+
+    }
+
+    @Test
+    public void getNullPremiereTest() throws AssertionError {
+
+        assertNull(CONTROL_SERIES.getPremiereDate());
 
     }
 
@@ -71,9 +94,23 @@ public class TVSeriesTest {
     }
 
     @Test
+    public void getNullRatingTest() throws AssertionError {
+
+        assertEquals(0.0, CONTROL_SERIES.getAverageRating(), 0.000001);
+
+    }
+
+    @Test
     public void getNetworkTest() throws AssertionError {
 
         assertEquals("HBO", GAME_OF_THRONES.getNetworkName());
+
+    }
+
+    @Test
+    public void getNullNetworkTest() throws AssertionError {
+
+        assertNull(CONTROL_SERIES.getNetworkName());
 
     }
 
@@ -86,6 +123,13 @@ public class TVSeriesTest {
     }
 
     @Test
+    public void getNullSeriesSummaryTest() throws AssertionError {
+
+        assertNull(CONTROL_SERIES.getSeriesSummary());
+
+    }
+
+    @Test
     public void getEpisodeSummaryTest() throws AssertionError {
 
         String homelandS1E1Summary = "<p>In the opener of this \"Manchurian Candidate\"-like political thriller, a marine rescued after eight years as a POW in Afghanistan returns home a war hero. But a CIA operative suspects he may actually be an enemy agent with a connection to Al Qaeda and part of a plan to commit a terrorist act on U.S. soil.</p>";
@@ -94,14 +138,24 @@ public class TVSeriesTest {
     }
 
     @Test
+    public void getEpisodeNullSummary() throws AssertionError {
+
+        TVSeries.TVEpisode noSummaryEpisode = CONTROL_SERIES.createNewEpisode();
+        assertNull(noSummaryEpisode.getSummary());
+
+    }
+
+    @Test
     public void getEpisodeTest() throws AssertionError {
 
+        //Creating equivalent episode for comparison
         TVSeries.TVEpisode homelandS7E12 = HOMELAND.createNewEpisode();
         homelandS7E12.setName("Paean to the People");
         homelandS7E12.setSummary("<p>Carrie and Saul's mission doesn't go as planned. Elizabeth Keane fights for her presidency.</p>");
         homelandS7E12.setAirdate("2018-04-29");
         homelandS7E12.setSeason(7);
         homelandS7E12.setNumber(12);
+        homelandS7E12.setRuntimeInMinutes(60);
 
         assertEquals(homelandS7E12, HOMELAND.getEpisode(7, 12));
 
@@ -119,7 +173,33 @@ public class TVSeriesTest {
             exceptionThrown = true;
         }
 
-        assertTrue(exceptionThrown);
+        assertTrue("Season/Episodes doesn't exist", exceptionThrown);
+
+    }
+
+    @Test
+    public void getEpisodesInSeasonTest() throws AssertionError {
+
+        TVSeries.TVEpisode[] gotSeason1 = new TVSeries.TVEpisode[10];
+        for (int episode = 1; episode <= gotSeason1.length; episode++) {
+            gotSeason1[episode - 1] = GAME_OF_THRONES.getEpisode(1, episode);
+        }
+
+        assertArrayEquals(gotSeason1, GAME_OF_THRONES.getEpisodesInSeason(1));
+
+    }
+
+    @Test
+    public void getEpisodesInNullSeasonTest() throws AssertionError {
+
+        boolean exceptionThrown = false;
+        try {
+            GAME_OF_THRONES.getEpisodesInSeason(9);
+        } catch (IllegalArgumentException e) {
+            exceptionThrown = true;
+        }
+
+        assertTrue("Season doesn't exist", exceptionThrown);
 
     }
 
@@ -142,8 +222,16 @@ public class TVSeriesTest {
     @Test
     public void getEpisodeNameTest() throws AssertionError {
 
-        //Test for middle values
         assertEquals("Blackwater", GAME_OF_THRONES.getEpisode(2, 9).getEpisodeName());
+
+    }
+
+    @Test
+    public void getNullEpisodeName() throws AssertionError {
+
+        TVSeries.TVEpisode noNameEpisode = CONTROL_SERIES.createNewEpisode();
+
+        assertNull(noNameEpisode.getEpisodeName());
 
     }
 
@@ -151,6 +239,14 @@ public class TVSeriesTest {
     public void getEpisodeAirDateTest() throws AssertionError {
 
         assertEquals("2018-04-29", HOMELAND.getEpisode(7, 12).getAirdate());
+
+    }
+
+    @Test
+    public void getNullAirDateTest() throws AssertionError {
+
+        TVSeries.TVEpisode nullAirDate = CONTROL_SERIES.createNewEpisode();
+        assertNull(nullAirDate.getAirdate());
 
     }
 
@@ -163,6 +259,7 @@ public class TVSeriesTest {
         gotS8E1.setAirdate("2011-04-17");
         gotS8E1.setSeason(8);
         gotS8E1.setNumber(1);
+        gotS8E1.setRuntimeInMinutes(60);
 
         GAME_OF_THRONES.addNewEpisode(gotS8E1);
         assertEquals(gotS8E1, GAME_OF_THRONES.getEpisode(8, 1));
@@ -193,9 +290,25 @@ public class TVSeriesTest {
     }
 
     @Test
+    public void getEpisodeNullSeasonTest() throws AssertionError {
+
+        TVSeries.TVEpisode emptyEpisode = CONTROL_SERIES.createNewEpisode();
+        assertEquals(0, emptyEpisode.getSeason());
+
+    }
+
+    @Test
     public void getEpisodeNumberTest() throws AssertionError {
 
         assertEquals(7, GAME_OF_THRONES.getEpisode(7, 7).getNumber());
+
+    }
+
+    @Test
+    public void getEpisodeNullNumberTest() {
+
+        TVSeries.TVEpisode emptyEpisode = CONTROL_SERIES.createNewEpisode();
+        assertEquals(0, emptyEpisode.getNumber());
 
     }
 
@@ -208,10 +321,31 @@ public class TVSeriesTest {
     }
 
     @Test
+    public void getEpisodeByBadDateTest() throws AssertionError {
+
+        assertNull(GAME_OF_THRONES.getEpisodeOnDate("non-formatted"));
+
+    }
+
+    @Test
+    public void getEpisodeOnNullDateTest() throws AssertionError {
+
+        assertNull(GAME_OF_THRONES.getEpisodeOnDate(null));
+
+    }
+
+    @Test
     public void getEpisodesInYearTest() throws AssertionError {
 
         TVSeries.TVEpisode[] gotEpisodesIn2019 = { GAME_OF_THRONES.getEpisode(8 , 1) };
         assertArrayEquals(gotEpisodesIn2019, GAME_OF_THRONES.getEpisodesInYear(2019));
+
+    }
+
+    @Test
+    public void getEpisodesInEmptyYearTest() throws AssertionError {
+
+        assertTrue(GAME_OF_THRONES.getEpisodesInYear(2020).length == 0);
 
     }
 
@@ -225,6 +359,13 @@ public class TVSeriesTest {
         }
 
         assertArrayEquals(gotSeasonPremieres, GAME_OF_THRONES.getSeasonPremiereEpisodes());
+
+    }
+
+    @Test
+    public void getNullSeriesPremiereEpisodesTest() throws AssertionError {
+
+        assertNull(CONTROL_SERIES.getSeasonPremiereEpisodes());
 
     }
 
