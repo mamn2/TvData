@@ -9,37 +9,58 @@ import java.util.*;
  */
 public class TVSeries {
 
+    //Name of TV series, e.g. Game of Thrones
     private String seriesName;
+
+    //Primary language, e.g. English
     private String language;
+
+    //All genres, e.g {Action, Fantasy, Thriller}
     private String[] genres;
+
+    //Series premiere date in from YYYY-MM-DD, e.g. 2011-04-13
     private String premiereDate;
+
+    //Average rating of the series, e.g. 9.5
     private double averageRating;
+
+    //Name of primary network, e.g. GBO
     private String networkName;
+
+    //Summary of series, e.g. "Mohamed the programmer encounters wild debugging in this new hit HBO series"
     private String seriesSummary;
+
+    /* All episodes in series organized by season and episode. Note the array is jagged meaning different seasons
+    may have different lengths and season/episodes start at 0 instead of 1 */
     private TVEpisode[][] episodes;
 
-    public TVSeries(JsonObject tvShowJSON) throws NullPointerException {
+    /**
+     * This constructor deserializes a JSON object into a Java TVSeries object.
+     * @param tvSeriesJSON is information about a TVSeries in the form of a JSON Object
+     * @throws NullPointerException happens when JSONObject doesn't follow the structure that the deserializer does.
+     */
+    public TVSeries(JsonObject tvSeriesJSON) throws NullPointerException {
 
         //Initializing fields from information found in JSONObject
-        this.setSeriesName(tvShowJSON.get("name").getAsString());
-        this.setLanguage(tvShowJSON.get("language").getAsString());
-        this.setSeriesSummary(tvShowJSON.get("summary").getAsString());
-        this.setAverageRating(tvShowJSON.get("rating").getAsJsonObject().get("average").getAsDouble());
-        this.setNetworkName(tvShowJSON.get("network").getAsJsonObject().get("name").getAsString());
-        this.setPremiereDate(tvShowJSON.get("premiered").getAsString());
+        this.setSeriesName(tvSeriesJSON.get("name").getAsString());
+        this.setLanguage(tvSeriesJSON.get("language").getAsString());
+        this.setSeriesSummary(tvSeriesJSON.get("summary").getAsString());
+        this.setAverageRating(tvSeriesJSON.get("rating").getAsJsonObject().get("average").getAsDouble());
+        this.setNetworkName(tvSeriesJSON.get("network").getAsJsonObject().get("name").getAsString());
+        this.setPremiereDate(tvSeriesJSON.get("premiered").getAsString());
 
         //Since the genres are stored in a JsonArray, loop through it to convert to a java array
-        String[] genres = new String[tvShowJSON.get("genres").getAsJsonArray().size()];
+        String[] genres = new String[tvSeriesJSON.get("genres").getAsJsonArray().size()];
         for (int i = 0; i < genres.length; i++) {
-            genres[i] = tvShowJSON.get("genres").getAsJsonArray().get(i).getAsString();
+            genres[i] = tvSeriesJSON.get("genres").getAsJsonArray().get(i).getAsString();
         }
         this.setGenres(genres);
 
         //Since the episodes are stored in a JsonArray, we loop through it to convert it to a java array
-        TVEpisode[] episodes = new TVEpisode[tvShowJSON.get("_embedded").getAsJsonObject()
-                .get("episodes").getAsJsonArray().size()];
+        TVEpisode[] episodes = new TVEpisode[tvSeriesJSON.get("_embedded").getAsJsonObject()
+                                                         .get("episodes").getAsJsonArray().size()];
         for (int i = 0; i < episodes.length; i++) {
-            episodes[i] = new Gson().fromJson(tvShowJSON.get("_embedded").getAsJsonObject()
+            episodes[i] = new Gson().fromJson(tvSeriesJSON.get("_embedded").getAsJsonObject()
                             .get("episodes").getAsJsonArray().get(i),
                     TVEpisode.class);
         }
@@ -47,34 +68,69 @@ public class TVSeries {
 
     }
 
+    /**
+     * Getter for series name instance variable.
+     * @return name of the series.
+     */
     public String getSeriesName() {
         return seriesName;
     }
 
+    /**
+     * Getter for language instance variable.
+     * @return primary language of the series.
+     */
     public String getLanguage() {
         return language;
     }
 
+    /**
+     * Getter for genres instance variable.
+     * @return an array of all the genres in the show.
+     */
     public String[] getGenres() {
         return genres;
     }
 
+    /**
+     * Getter for premiereDate instance variable.
+     * @return the premiere date of the series in the following format: YYYY-MM-DD.
+     */
     public String getPremiereDate() {
         return premiereDate;
     }
 
+    /**
+     * Getter for average rating instance variable.
+     * @return average rating for the series as a whole.
+     */
     public double getAverageRating() {
         return averageRating;
     }
 
+    /**
+     * Getter for networkName instance variable.
+     * @return primary network name of the series.
+     */
     public String getNetworkName() {
         return networkName;
     }
 
+    /**
+     * Getter for seriesSummary instance variable.
+     * @return a summary of the series as found on DVD cover.
+     */
     public String getSeriesSummary() {
         return seriesSummary;
     }
 
+    /**
+     * Getter for single episode in episodes array.
+     * @param seasonNum is the season number for the episode being searched.
+     * @param episodeNum is the episode number for the episode being searched.
+     * @return a TVEpisode that matches the season and episode number provided.
+     * @throws IllegalArgumentException if the season/episode combo does not exist.
+     */
     public TVEpisode getEpisode(int seasonNum, int episodeNum) throws IllegalArgumentException {
         if (seasonNum > episodes.length || episodeNum > episodes[seasonNum - 1].length) {
             throw new IllegalArgumentException();
@@ -82,10 +138,19 @@ public class TVSeries {
         return episodes[seasonNum - 1][episodeNum - 1];
     }
 
+    /**
+     * Getter for episodes instance variable.
+     * @return All episodes in the series in 2D array. First dimension represents seasons, second is episode number.
+     */
     public TVEpisode[][] getEpisodes() {
         return episodes;
     }
 
+    /**
+     * Filter function to search for an episode on a given date.
+     * @param date is the date of the episode in the format: YYYY-MM-DD
+     * @return an episode if there was one on that date in that instance of TVSeries.
+     */
     public TVEpisode getEpisodeOnDate(String date) {
 
         for (TVEpisode[] season : episodes) {
@@ -99,36 +164,66 @@ public class TVSeries {
 
     }
 
+    /**
+     * Setter for series name.
+     * @param seriesName is whatever you want your series name to be.
+     */
     public void setSeriesName(String seriesName) {
         this.seriesName = seriesName;
     }
 
+    /**
+     * Setter for language.
+     * @param language is whatever the primary language of the TVSeries is.
+     */
     public void setLanguage(String language) {
         this.language = language;
     }
 
+    /**
+     * Setter for genre.
+     * @param genres is whatever genres the TVSeries belongs.
+     */
     public void setGenres(String[] genres) {
         this.genres = genres;
     }
 
+    /**
+     * Setter for premiere date.
+     * @param premiereDate is whenever the premiere date of the series is in the form YYYY-MM-DD.
+     */
     public void setPremiereDate(String premiereDate) {
         this.premiereDate = premiereDate;
     }
 
+    /**
+     * Setter for average rating.
+     * @param averageRating the average rating of the show as a whole.
+     */
     public void setAverageRating(double averageRating) {
         this.averageRating = averageRating;
     }
 
+    /**
+     * Setter for network name of the TVSeries.
+     * @param networkName is the name of the primary network that the TVSeries is featured on.
+     */
     public void setNetworkName(String networkName) {
         this.networkName = networkName;
     }
 
+    /**
+     * Setter for summary of the TVSeries.
+     * @param seriesSummary is the summary of the TVSeries, usually as found on imDB.com
+     */
     public void setSeriesSummary(String seriesSummary) {
         this.seriesSummary = seriesSummary;
     }
 
     /**
-     * This functions converts the array of episodes into a 2D array for better readability
+     * Setter for episodes instance variable.
+     * This functions converts the array of episodes into a 2D array for better readability and sets it to
+     * episodes instance variable.
      * @param episodes is all the episodes in a show in the form of a 1D array
      */
     public void setEpisodes(TVEpisode[] episodes) throws NullPointerException {
@@ -177,7 +272,7 @@ public class TVSeries {
 
     /**
      * Creates a new TVEpisode for an instance of TVSeries.
-     * Note that this function does not affect the list of episodes in the series. addNewEpisodes() does.
+     * Note that this function does not affect the list of episodes in the series. However, addNewEpisode does.
      * @return a new TVEpisode of the given instance.
      */
     public TVEpisode createNewEpisode() {
@@ -206,6 +301,11 @@ public class TVSeries {
 
     }
 
+    /**
+     * Filter method to search for all episodes from the TVSeries that premiered in a given year.
+     * @param year is the year being searched for episodes.
+     * @return all the episodes from that series in the form of an array.
+     */
     public TVEpisode[] getEpisodesInYear(int year) {
 
         LinkedList<TVEpisode> episodesInYear = new LinkedList<>();
@@ -222,6 +322,10 @@ public class TVSeries {
 
     }
 
+    /**
+     * Filter function to find all the season premiere episodes of a given instance TVSeries.
+     * @return all the season premiere episodes of a given instance.
+     */
     public TVEpisode[] getSeasonPremiereEpisodes() {
 
         TVEpisode[] seasonPremiereEpisodes = new TVEpisode[episodes.length];
@@ -238,63 +342,117 @@ public class TVSeries {
      */
     public class TVEpisode {
 
+        //Name of the episode.
         private String name;
+
+        //Which season it belongs to.
         private int season;
+
+        //Which number it is within the season.
         private int number;
+
+        //The date on which the episode first aired.
         private String airdate;
+
+        //A short summary of what happens in the episode.
         private String summary;
 
+        /**
+         * Getter for name instance variable.
+         * @return the name of the episode.
+         */
         public String getEpisodeName() {
             return name;
         }
 
+        /**
+         * Getter for the season instance variable.
+         * @return the season that this episode belongs to.
+         */
         public int getSeason() {
             return season;
         }
 
+        /**
+         * Getter for the number instance variable.
+         * @return the number within the season that this episode belongs to.
+         */
         public int getNumber() {
             return number;
         }
 
+        /**
+         * Getter for the airdate instance variable
+         * @return the date in which this episode aired in the form YYYY-MM-DD
+         */
         public String getAirdate() {
             return airdate;
         }
 
+        /**
+         * Getter for the summary instance variable.
+         * @return a short summary of what happens in the episode.
+         */
         public String getSummary() {
             return summary;
         }
 
+        /**
+         * Setter for the name instance variable.
+         * @param name the name of the episode.
+         */
         public void setName(String name) {
             this.name = name;
         }
 
+        /**
+         * Setter for the season number.
+         * @param season is the season that this episode belongs to.
+         */
         public void setSeason(int season) {
             this.season = season;
         }
 
+        /**
+         * Setter for the number instance variable.
+         * @param number the episode number within the season that this episode belongs to
+         */
         public void setNumber(int number) {
             if (this.getSeason() != 0) {
                 this.number = number;
             }
         }
 
+        /**
+         * Setter for the airdate instance variable.
+         * @param airdate is the date the episode first aired in the form YYYY-MM-DD.
+         */
         public void setAirdate(String airdate) {
             this.airdate = airdate;
         }
 
+        /**
+         * Setter for the summary instance variable.
+         * @param summary is a short summary of the episodes contents.
+         */
         public void setSummary(String summary) {
             this.summary = summary;
         }
 
+        /**
+         * TVEpisode equality comparison
+         * @param otherObject is the other episode or object being compared
+         * @return
+         */
         @Override
-        public boolean equals(final Object episode) {
+        public boolean equals(final Object otherObject) {
 
             //A TVEpisode cannot be equal to another object that is not a TVEpisode
-            if (!(episode instanceof TVEpisode)) {
+            if (!(otherObject instanceof TVEpisode)) {
                 return false;
             }
 
-            TVEpisode otherEpisode = (TVEpisode) episode;
+            TVEpisode otherEpisode = (TVEpisode) otherObject;
 
             //Ensures that all fields of the episode are equal to each other.
             return this.name.equals(otherEpisode.getEpisodeName())
