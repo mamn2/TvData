@@ -308,19 +308,26 @@ public class TVSeries {
     }
 
     /**
-     * Filter method to search for all episodes from the TVSeries that premiered in a given year.
+     * Filter method to search for all episodes in 2d array that premiered in a given year.
      * @param year is the year being searched for episodes.
      * @return all the episodes from that series in the form of an array.
      */
     public static TVEpisode[] getEpisodesInYear(final TVEpisode[][] allEpisodes, final int year) {
+        return getEpisodesInYear(convert2DEpisodesto1D(allEpisodes), year);
+    }
+
+    /**
+     * Filter method to search for all episodes from 1d array that premiered in a given year.
+     * @param year is the year being searched for episodes.
+     * @return all the episodes from that series in the form of an array.
+     */
+    public static TVEpisode[] getEpisodesInYear(final TVEpisode[] episodes, final int year) {
 
         LinkedList<TVEpisode> episodesInYear = new LinkedList<>();
 
-        for (TVEpisode[] season : allEpisodes) {
-            for (TVEpisode episode : season) {
-                if (episode.getAirdate().substring(0, 4).equals(Integer.toString(year))) {
-                    episodesInYear.add(episode);
-                }
+        for (TVEpisode episode : episodes) {
+            if (episode.getAirdate().substring(0, 4).equals(Integer.toString(year))) {
+                episodesInYear.add(episode);
             }
         }
 
@@ -328,16 +335,30 @@ public class TVSeries {
 
     }
 
+    /**
+     * Searches through all the episodes in a 2d array and returns episodes containing the name.
+     * @param allEpisodes is all the episodes being searched
+     * @param name is the search name criteria
+     * @return all episodes with the name in it
+     */
     public static TVEpisode[] searchEpisodesByName(final TVEpisode[][] allEpisodes, final String name) {
+        return searchEpisodesByName(convert2DEpisodesto1D(allEpisodes), name);
+    }
 
-        if (allEpisodes != null && name != null) {
+    /**
+     * Searches through all the episodes in a 1d array and returns episodes containing the name.
+     * @param episodes is all the episodes being searched
+     * @param name is the search name criteria
+     * @return all episodes with the name in it
+     */
+    public static TVEpisode[] searchEpisodesByName(final TVEpisode[] episodes, final String name) {
+
+        if (episodes != null && name != null) {
             LinkedList<TVEpisode> allEpisodesWithName = new LinkedList<>();
 
-            for (TVEpisode[] season : allEpisodes) {
-                for (TVEpisode episode : season) {
-                    if (episode.getEpisodeName().toUpperCase().contains(name.toUpperCase())) {
-                        allEpisodesWithName.add(episode);
-                    }
+            for (TVEpisode episode: episodes) {
+                if (episode.getEpisodeName().toUpperCase().contains(name.toUpperCase())) {
+                    allEpisodesWithName.add(episode);
                 }
             }
             return allEpisodesWithName.toArray(new TVEpisode[allEpisodesWithName.size()]);
@@ -355,16 +376,7 @@ public class TVSeries {
      */
     public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[][] allEpisodes, int maxRuntimeMinutes) {
 
-        LinkedList<TVEpisode> allEpisodesAsList = new LinkedList<>();
-
-        if (allEpisodes != null) {
-            for (TVEpisode[] season : allEpisodes) {
-                Collections.addAll(allEpisodesAsList, season);
-            }
-        }
-
-        return searchEpisodesByMaxRuntime(allEpisodesAsList.toArray(new TVEpisode[allEpisodesAsList.size()]),
-                                                                    maxRuntimeMinutes);
+        return searchEpisodesByMaxRuntime(convert2DEpisodesto1D(allEpisodes), maxRuntimeMinutes);
 
     }
 
@@ -390,21 +402,23 @@ public class TVSeries {
 
     }
 
+    public static TVEpisode[] getEpisodesOnDate(TVEpisode[][] unsortedEpisodes, final String date) {
+        return getEpisodesOnDate(convert2DEpisodesto1D(unsortedEpisodes), date);
+    }
+
     /**
      * Filter function to search for an episode on a given date.
      * @param unsortedEpisodes is all the episodes being searched
      * @param date is the date of the episode in the format: YYYY-MM-DD
      * @return an array of episodes on that date in that instance of TVSeries.
      */
-    public static TVEpisode[] getEpisodesOnDate(TVEpisode[][] unsortedEpisodes, final String date) {
+    public static TVEpisode[] getEpisodesOnDate(TVEpisode[] unsortedEpisodes, final String date) {
 
         LinkedList<TVEpisode> allEpisodesOnDate = new LinkedList<>();
         if (unsortedEpisodes != null) {
-            for (TVEpisode[] season : unsortedEpisodes) {
-                for (TVEpisode episode : season) {
-                    if (episode != null && episode.getAirdate() != null && episode.getAirdate().equals(date)) {
-                        allEpisodesOnDate.add(episode);
-                    }
+            for (TVEpisode episode : unsortedEpisodes) {
+                if (episode != null && episode.getAirdate() != null && episode.getAirdate().equals(date)) {
+                    allEpisodesOnDate.add(episode);
                 }
             }
         }
@@ -414,12 +428,24 @@ public class TVSeries {
     }
 
     /**
-     * Filter function for list of characters
-     * @param unsortedEpisodes
-     * @param character
-     * @return
+     * Filter function for list of characters.
+     * Method is not completely accurate and is based on the summaries of the episode.
+     * @param unsortedEpisodes 2d array of all unsorted episodes.
+     * @param character the name of the character you are looking for.
+     * @return all the episodes that contain the given character.
      */
-    public static TVEpisode[] searchEpisodeByCharacter(final TVEpisode[][] unsortedEpisodes, final String character) {
+    public static TVEpisode[] searchEpisodesByCharacter(final TVEpisode[][] unsortedEpisodes, final String character) {
+        return searchEpisodesByCharacter(convert2DEpisodesto1D(unsortedEpisodes), character);
+    }
+
+    /**
+     * Filter function for list of characters.
+     * Method is not completely accurate and is based on the summaries of the episode.
+     * @param unsortedEpisodes 1d array of all unsorted episodes.
+     * @param character the name of the character you are looking for.
+     * @return all the episodes that contain the given character.
+     */
+    public static TVEpisode[] searchEpisodesByCharacter(final TVEpisode[] unsortedEpisodes, final String character) {
 
         if (character == null || character.length() == 0) {
             return new TVEpisode[0];
@@ -427,15 +453,145 @@ public class TVSeries {
 
         LinkedList<TVEpisode> episodesWithCharacter = new LinkedList<>();
 
-        for (TVEpisode[] season: unsortedEpisodes) {
-            for (TVEpisode episode: season) {
-                if (episode != null && episode.getSummary().toUpperCase().contains(character.toUpperCase())) {
-                    episodesWithCharacter.add(episode);
-                }
+        for (TVEpisode episode : unsortedEpisodes) {
+            if (episode != null && episode.getSummary().toUpperCase().contains(character.toUpperCase())) {
+                episodesWithCharacter.add(episode);
             }
         }
 
         return episodesWithCharacter.toArray(new TVEpisode[episodesWithCharacter.size()]);
+
+    }
+
+    /**
+     * Calculates the total number of episodes given all the episodes in the series.
+     * @param allEpisodes is all the episodes in the series or all the episodes being searched.
+     * @return the total number of episodes in the series.
+     */
+    public static int totalNumberOfEpisodes(final TVEpisode[][] allEpisodes) {
+
+        if (allEpisodes == null) {
+            return 0;
+        }
+
+        int totalNumEpisodes = 0;
+        for (TVEpisode[] season : allEpisodes) {
+            totalNumEpisodes += season.length;
+        }
+
+        return totalNumEpisodes;
+
+    }
+
+    /**
+     * Calculates the average runtime of episodes in a given 2d array by calling helper method
+     * @param episodes all the episodes that are being calculated
+     * @return the average runtime of all the episodes
+     */
+    public static int averageRuntimeOfEpisodes(final TVEpisode[][] episodes) {
+        return averageRuntimeOfEpisodes(convert2DEpisodesto1D(episodes));
+    }
+
+    /**
+     * Calculates the average runtime of episodes in a given 1d array
+     * @param episodes all the episodes that are being calculated
+     * @return the average runtime of all the episodes
+     */
+    public static int averageRuntimeOfEpisodes(final TVEpisode[] episodes) {
+
+        if (episodes == null || episodes.length == 0) {
+            return 0;
+        }
+
+        int totalLengthOfSeries = 0;
+        for (TVEpisode episode : episodes) {
+            totalLengthOfSeries += episode.getRuntimeInMinutes();
+        }
+
+        return totalLengthOfSeries / episodes.length;
+
+    }
+
+    /**
+     * Searches for episode with the max runtime.
+     * @param episodes is a 2d array of episodes being searched through.
+     * @return length in minutes of max runtime of episodes.
+     */
+    public static int maxRuntimeOfEpisodes(final TVEpisode[][] episodes) {
+        return maxRuntimeOfEpisodes(convert2DEpisodesto1D(episodes));
+    }
+
+    /**
+     * Searches for episode with the max runtime.
+     * @param episodes is a 1d array of episodes being searched through.
+     * @return length in minutes of max runtime of episodes.
+     */
+    public static int maxRuntimeOfEpisodes(final TVEpisode[] episodes) {
+
+        if (episodes == null || episodes.length == 0) {
+            return 0;
+        }
+
+        int currentMaxRuntime = 0;
+        for (TVEpisode episode: episodes) {
+            currentMaxRuntime = episode.getRuntimeInMinutes();
+        }
+
+        return currentMaxRuntime;
+
+    }
+
+    /**
+     * Searches for episode with the min runtime.
+     * @param episodes is a 2d array of episodes being searched through.
+     * @return length in minutes of min runtime of episodes.
+     */
+    public static int minRuntimeOfEpisodes(final TVEpisode[][] episodes) {
+        return minRuntimeOfEpisodes(convert2DEpisodesto1D(episodes));
+    }
+
+    /**
+     * Searches for episode with the min runtime.
+     * @param episodes is a 1d array of episodes being searched through.
+     * @return length in minutes of min runtime of episodes.
+     */
+    public static int minRuntimeOfEpisodes(final TVEpisode[] episodes) {
+
+        if (episodes == null || episodes.length == 0) {
+            return 0;
+        }
+
+        int currentMinRuntime = maxRuntimeOfEpisodes(episodes);
+        for (TVEpisode episode : episodes) {
+            currentMinRuntime = episode.getRuntimeInMinutes();
+        }
+
+        return currentMinRuntime;
+
+    }
+
+    /**
+     * Takes 2d array of episodes and converts it into 1d array of episodes
+     * @param episodes is a 2d array of episodes
+     * @return a 1d array of episodes containing all the episodes given in the parameter
+     */
+    public static TVEpisode[] convert2DEpisodesto1D(final TVEpisode[][] episodes) {
+
+        if (episodes == null) {
+            return null;
+        }
+
+        TVEpisode[] allEpisodes = new TVEpisode[totalNumberOfEpisodes(episodes)];
+
+        int totalEpisodeNum = 0;
+        for (int season = 0; season < episodes.length; season++) {
+            for (int episode = 0; episode < episodes[season].length; episode++) {
+                allEpisodes[totalEpisodeNum] = episodes[season][episode];
+                totalEpisodeNum++;
+            }
+        }
+
+        return allEpisodes;
 
     }
 

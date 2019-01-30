@@ -389,7 +389,7 @@ public class TVSeriesTest {
         episodesWithJorah[2] = GAME_OF_THRONES.getEpisode(6, 4);
 
         assertArrayEquals(episodesWithJorah,
-                TVSeries.searchEpisodeByCharacter(GAME_OF_THRONES.getEpisodes(), "Jorah"));
+                TVSeries.searchEpisodesByCharacter(GAME_OF_THRONES.getEpisodes(), "Jorah"));
 
     }
 
@@ -397,7 +397,69 @@ public class TVSeriesTest {
     public void searchEpisodesByNullCharacterTest() throws AssertionError {
 
         assertArrayEquals(new TVSeries.TVEpisode[0],
-                TVSeries.searchEpisodeByCharacter(GAME_OF_THRONES.getEpisodes(), null));
+                TVSeries.searchEpisodesByCharacter(GAME_OF_THRONES.getEpisodes(), null));
+
+    }
+
+    @Test
+    public void getTotalNumberOfEpisodesTest() throws AssertionError {
+
+        int numEpisodesInHomeland = 84;
+        assertEquals(numEpisodesInHomeland, TVSeries.totalNumberOfEpisodes(HOMELAND.getEpisodes()));
+
+    }
+
+    @Test
+    public void getTotalNumberOfEpisodesInEmptySeriesTest() throws AssertionError {
+
+        assertEquals(0, TVSeries.totalNumberOfEpisodes(EMPTY_SERIES.getEpisodes()));
+
+    }
+
+    @Test
+    public void getAverageRuntimeOfSeriesTest() throws AssertionError {
+
+        int averageRuntimeInHomeland = 60;
+        assertEquals(averageRuntimeInHomeland, TVSeries.averageRuntimeOfEpisodes(HOMELAND.getEpisodes()));
+
+    }
+
+    @Test
+    public void getAverageRuntimeOfSeasonTest() throws AssertionError {
+
+        int averageRuntimeGOTS4 = 60;
+        assertEquals(averageRuntimeGOTS4, TVSeries.averageRuntimeOfEpisodes(GAME_OF_THRONES.getEpisodes()[3]));
+
+    }
+
+    @Test
+    public void getMaximumRuntimeOfSeriesTest() throws AssertionError {
+
+        int maxRuntimeInGameOfThrones = 60;
+        assertEquals(maxRuntimeInGameOfThrones, TVSeries.maxRuntimeOfEpisodes(GAME_OF_THRONES.getEpisodes()));
+
+    }
+
+    @Test
+    public void getMaximumRuntimeOfSeasonTest() throws AssertionError {
+
+        int maxRuntimeInHomelandS1 = 60;
+        assertEquals(maxRuntimeInHomelandS1, TVSeries.maxRuntimeOfEpisodes(HOMELAND.getEpisodes()[0]));
+
+    }
+    @Test
+    public void getMinimumRuntimeOfSeriesTest() throws AssertionError {
+
+        int minRuntimeInHomeland = 60;
+        assertEquals(minRuntimeInHomeland, TVSeries.minRuntimeOfEpisodes(GAME_OF_THRONES.getEpisodes()));
+
+    }
+
+    @Test
+    public void getMinimumRuntimeOfSeasonTest() throws AssertionError {
+
+        int minRuntimeInGOTS5 = 60;
+        assertEquals(minRuntimeInGOTS5, TVSeries.minRuntimeOfEpisodes(GAME_OF_THRONES.getEpisodes()[4]));
 
     }
 
