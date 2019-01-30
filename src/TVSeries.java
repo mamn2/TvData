@@ -2,7 +2,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.annotations.SerializedName;
 
 import java.util.*;
 
@@ -27,7 +26,7 @@ public class TVSeries {
     //Average rating of the series, e.g. 9.5
     private double averageRating;
 
-    //Name of primary network, e.g. GBO
+    //Name of primary network, e.g. HBO
     private String networkName;
 
     //Summary of series, e.g. "Mohamed the programmer encounters wild debugging in this new hit HBO series"
@@ -38,9 +37,7 @@ public class TVSeries {
     private TVEpisode[][] episodes;
 
     public TVSeries (String seriesName) {
-
         this.seriesName = seriesName;
-
     }
 
     /**
@@ -72,6 +69,14 @@ public class TVSeries {
         for (int i = 0; i < episodes.length; i++) {
             episodes[i] = new Gson().fromJson(episodeElements.get(i), TVEpisode.class);
             episodes[i].setRuntimeInMinutes(episodeElements.get(i).getAsJsonObject().get("runtime").getAsInt());
+
+            //Avoids error by placing in try catch block since sometimes the JSON is null
+            JsonElement episodeSummary = episodeElements.get(i).getAsJsonObject().get("summary");
+            try {
+                episodes[i].setSummary(episodeSummary.getAsString());
+            } catch (UnsupportedOperationException e) {
+                System.out.println(e);
+            }
         }
         this.setEpisodes(episodes);
 
@@ -159,28 +164,10 @@ public class TVSeries {
     }
 
     /**
-     * Filter function to search for an episode on a given date.
-     * @param date is the date of the episode in the format: YYYY-MM-DD
-     * @return an episode if there was one on that date in that instance of TVSeries.
-     */
-    public TVEpisode getEpisodeOnDate(String date) {
-
-        for (TVEpisode[] season : episodes) {
-            for (TVEpisode episode : season) {
-                if (episode != null && episode.getAirdate() != null && episode.getAirdate().equals(date)) {
-                    return episode;
-                }
-            }
-        }
-        return null;
-
-    }
-
-    /**
      * Setter for series name.
      * @param seriesName is whatever you want your series name to be.
      */
-    public void setSeriesName(String seriesName) {
+    public void setSeriesName(final String seriesName) {
         this.seriesName = seriesName;
     }
 
@@ -188,7 +175,7 @@ public class TVSeries {
      * Setter for language.
      * @param language is whatever the primary language of the TVSeries is.
      */
-    public void setLanguage(String language) {
+    public void setLanguage(final String language) {
         this.language = language;
     }
 
@@ -196,7 +183,7 @@ public class TVSeries {
      * Setter for genre.
      * @param genres is whatever genres the TVSeries belongs.
      */
-    public void setGenres(String[] genres) {
+    public void setGenres(final String[] genres) {
         this.genres = genres;
     }
 
@@ -204,7 +191,7 @@ public class TVSeries {
      * Setter for premiere date.
      * @param premiereDate is whenever the premiere date of the series is in the form YYYY-MM-DD.
      */
-    public void setPremiereDate(String premiereDate) {
+    public void setPremiereDate(final String premiereDate) {
         this.premiereDate = premiereDate;
     }
 
@@ -212,7 +199,7 @@ public class TVSeries {
      * Setter for average rating.
      * @param averageRating the average rating of the show as a whole.
      */
-    public void setAverageRating(double averageRating) {
+    public void setAverageRating(final double averageRating) {
         this.averageRating = averageRating;
     }
 
@@ -220,7 +207,7 @@ public class TVSeries {
      * Setter for network name of the TVSeries.
      * @param networkName is the name of the primary network that the TVSeries is featured on.
      */
-    public void setNetworkName(String networkName) {
+    public void setNetworkName(final String networkName) {
         this.networkName = networkName;
     }
 
@@ -228,22 +215,27 @@ public class TVSeries {
      * Setter for summary of the TVSeries.
      * @param seriesSummary is the summary of the TVSeries, usually as found on imDB.com
      */
-    public void setSeriesSummary(String seriesSummary) {
-        this.seriesSummary = seriesSummary;
+    public void setSeriesSummary(final String seriesSummary) {
+        if (seriesSummary != null) {
+            this.seriesSummary = seriesSummary.replaceAll("(<[a-z]>)|(</[a-z]>)", "");
+        } else {
+            this.seriesSummary = null;
+        }
     }
 
     /**
      * Setter for episodes instance variable.
      * This functions converts the array of episodes into a 2D array for better readability and sets it to
      * episodes instance variable.
-     * @param episodes is all the episodes in a show in the form of a 1D array
+     * @param episodes is all the episodes in a show in the form of a 1D array.
+     * @throws NullPointerException if one of the episodes in the array is null
      */
-    public void setEpisodes(TVEpisode[] episodes) throws NullPointerException {
+    public void setEpisodes(final TVEpisode[] episodes) throws NullPointerException {
 
         if (episodes != null) {
 
             //calculates how many seasons there are by going through the episodes and checking their season number
-            int numSeasons = 1;
+            int numSeasons = 0;
             for (TVEpisode episode: episodes) {
                 if (episode == null) {
                     throw new NullPointerException("Tried to set null episode");
@@ -283,7 +275,7 @@ public class TVSeries {
 
     /**
      * Creates a new TVEpisode for an instance of TVSeries.
-     * Note that this function does not affect the list of episodes in the series. However, addNewEpisode does.
+     * Note that this function does not affect the list of episodes in the series. However, addOrReplaceEpisode does.
      * @return a new TVEpisode of the given instance.
      */
     public TVEpisode createNewEpisode() {
@@ -295,18 +287,19 @@ public class TVSeries {
      * If the episode already exists it will be replaced by the newEpisode
      * @param newEpisode contains a custom made episode
      */
-    public void addNewEpisode(TVEpisode newEpisode) {
+    public void addOrReplaceEpisode(final TVEpisode newEpisode) {
 
-        //Copy current episodes to a list
+        //All new episodes stored in this list.
         LinkedList<TVEpisode> newEpisodeList = new LinkedList<>();
 
+        //Copy current episodes to a list.
         if (this.episodes != null && this.episodes.length != 0) {
             for (TVEpisode[] season : episodes) {
                 Collections.addAll(newEpisodeList, season);
             }
         }
 
-        //Add the new episode to the list
+        //Add the new episode to the list.
         newEpisodeList.add(newEpisode);
 
         //Uses the setEpisodes function to reinitialize episodes array
@@ -319,11 +312,11 @@ public class TVSeries {
      * @param year is the year being searched for episodes.
      * @return all the episodes from that series in the form of an array.
      */
-    public TVEpisode[] getEpisodesInYear(int year) {
+    public static TVEpisode[] getEpisodesInYear(final TVEpisode[][] allEpisodes, final int year) {
 
         LinkedList<TVEpisode> episodesInYear = new LinkedList<>();
 
-        for (TVEpisode[] season : episodes) {
+        for (TVEpisode[] season : allEpisodes) {
             for (TVEpisode episode : season) {
                 if (episode.getAirdate().substring(0, 4).equals(Integer.toString(year))) {
                     episodesInYear.add(episode);
@@ -335,31 +328,114 @@ public class TVSeries {
 
     }
 
-    public TVEpisode[] getEpisodesInSeason(int seasonNum) throws IllegalArgumentException {
+    public static TVEpisode[] searchEpisodesByName(final TVEpisode[][] allEpisodes, final String name) {
 
-        try {
-            return episodes[seasonNum - 1];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Season does not exist");
+        if (allEpisodes != null && name != null) {
+            LinkedList<TVEpisode> allEpisodesWithName = new LinkedList<>();
+
+            for (TVEpisode[] season : allEpisodes) {
+                for (TVEpisode episode : season) {
+                    if (episode.getEpisodeName().toUpperCase().contains(name.toUpperCase())) {
+                        allEpisodesWithName.add(episode);
+                    }
+                }
+            }
+            return allEpisodesWithName.toArray(new TVEpisode[allEpisodesWithName.size()]);
+        } else {
+            return null;
         }
 
     }
 
     /**
-     * Filter function to find all the season premiere episodes of a given instance TVSeries.
-     * @return all the season premiere episodes of a given instance.
+     * Function to search for all episodes under or equaling a certain runtime. Calls another method to do this.
+     * @param allEpisodes includes all the episodes in a series or just a 2d array of episodes.
+     * @param maxRuntimeMinutes is the maximum runtime the user permitted.
+     * @return an array that includes the all episodes up to and including max runtime.
      */
-    public TVEpisode[] getSeasonPremiereEpisodes() {
+    public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[][] allEpisodes, int maxRuntimeMinutes) {
 
-        if (episodes != null) {
-            TVEpisode[] seasonPremiereEpisodes = new TVEpisode[episodes.length];
-            for (int i = 0; i < seasonPremiereEpisodes.length; i++) {
-                seasonPremiereEpisodes[i] = episodes[i][0];
+        LinkedList<TVEpisode> allEpisodesAsList = new LinkedList<>();
+
+        if (allEpisodes != null) {
+            for (TVEpisode[] season : allEpisodes) {
+                Collections.addAll(allEpisodesAsList, season);
             }
-            return seasonPremiereEpisodes;
-        } else {
-            return null;
         }
+
+        return searchEpisodesByMaxRuntime(allEpisodesAsList.toArray(new TVEpisode[allEpisodesAsList.size()]),
+                                                                    maxRuntimeMinutes);
+
+    }
+
+    /**
+     * Function to search for all episodes under or equaling a certain runtime.
+     * @param allEpisodes is all the episodes being searched for
+     * @param maxRuntimeMinutes is the max runtime as set by the caller of the function.
+     * @return all episodes under or equaling a specified runtime.
+     */
+    public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[] allEpisodes, int maxRuntimeMinutes) {
+
+        LinkedList<TVEpisode> allEpisodesUnderMaxRuntime = new LinkedList<>();
+
+        if (allEpisodes != null) {
+            for (TVEpisode episode : allEpisodes) {
+                if (episode != null && episode.getRuntimeInMinutes() <= maxRuntimeMinutes) {
+                    allEpisodesUnderMaxRuntime.add(episode);
+                }
+            }
+        }
+
+        return allEpisodesUnderMaxRuntime.toArray(new TVEpisode[allEpisodesUnderMaxRuntime.size()]);
+
+    }
+
+    /**
+     * Filter function to search for an episode on a given date.
+     * @param unsortedEpisodes is all the episodes being searched
+     * @param date is the date of the episode in the format: YYYY-MM-DD
+     * @return an array of episodes on that date in that instance of TVSeries.
+     */
+    public static TVEpisode[] getEpisodesOnDate(TVEpisode[][] unsortedEpisodes, final String date) {
+
+        LinkedList<TVEpisode> allEpisodesOnDate = new LinkedList<>();
+        if (unsortedEpisodes != null) {
+            for (TVEpisode[] season : unsortedEpisodes) {
+                for (TVEpisode episode : season) {
+                    if (episode != null && episode.getAirdate() != null && episode.getAirdate().equals(date)) {
+                        allEpisodesOnDate.add(episode);
+                    }
+                }
+            }
+        }
+
+        return allEpisodesOnDate.toArray(new TVEpisode[allEpisodesOnDate.size()]);
+
+    }
+
+    /**
+     * Filter function for list of characters
+     * @param unsortedEpisodes
+     * @param character
+     * @return
+     */
+    public static TVEpisode[] searchEpisodeByCharacter(final TVEpisode[][] unsortedEpisodes, final String character) {
+
+        if (character == null || character.length() == 0) {
+            return new TVEpisode[0];
+        }
+
+        LinkedList<TVEpisode> episodesWithCharacter = new LinkedList<>();
+
+        for (TVEpisode[] season: unsortedEpisodes) {
+            for (TVEpisode episode: season) {
+                if (episode != null && episode.getSummary().toUpperCase().contains(character.toUpperCase())) {
+                    episodesWithCharacter.add(episode);
+                }
+            }
+        }
+
+        return episodesWithCharacter.toArray(new TVEpisode[episodesWithCharacter.size()]);
 
     }
 
@@ -438,7 +514,7 @@ public class TVSeries {
          * Setter for the name instance variable.
          * @param name the name of the episode.
          */
-        public void setName(String name) {
+        public void setName(final String name) {
             this.name = name;
         }
 
@@ -446,16 +522,18 @@ public class TVSeries {
          * Setter for the season number.
          * @param season is the season that this episode belongs to.
          */
-        public void setSeason(int season) {
-            this.season = season;
+        public void setSeason(final int season) {
+            if (season > 0) {
+                this.season = season;
+            }
         }
 
         /**
          * Setter for the number instance variable.
          * @param number the episode number within the season that this episode belongs to
          */
-        public void setNumber(int number) {
-            if (this.getSeason() != 0) {
+        public void setNumber(final int number) {
+            if (this.season > 0) {
                 this.number = number;
             }
         }
@@ -464,23 +542,29 @@ public class TVSeries {
          * Setter for the airdate instance variable.
          * @param airdate is the date the episode first aired in the form YYYY-MM-DD.
          */
-        public void setAirdate(String airdate) {
-            this.airdate = airdate;
+        public void setAirdate(final String airdate) {
+            if (airdate.matches("\\d\\d\\d\\d-\\d\\d-\\d\\d")) {
+                this.airdate = airdate;
+            }
         }
 
         /**
          * Setter for the summary instance variable.
          * @param summary is a short summary of the episodes contents.
          */
-        public void setSummary(String summary) {
-            this.summary = summary;
+        public void setSummary(final String summary) {
+            if (summary != null) {
+                this.summary = summary.replaceAll("(<[a-z]>)|(</[a-z]>)", "");
+            } else {
+                this.summary = null;
+            }
         }
 
         /**
          * Setter for the runtime field.
          * @param runtimeInMinutes is the runtime of the episode in minutes.
          */
-        public void setRuntimeInMinutes(int runtimeInMinutes) {
+        public void setRuntimeInMinutes(final int runtimeInMinutes) {
             this.runtimeInMinutes = runtimeInMinutes;
         }
 
