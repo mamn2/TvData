@@ -435,7 +435,7 @@ public class TVSeriesTest {
     @Test
     public void getMaximumRuntimeOfSeriesTest() throws AssertionError {
 
-        int maxRuntimeInGameOfThrones = 60;
+        int maxRuntimeInGameOfThrones = 69;
         assertEquals(maxRuntimeInGameOfThrones, TVSeries.maxRuntimeOfEpisodes(GAME_OF_THRONES.getEpisodes()));
 
     }
@@ -460,6 +460,57 @@ public class TVSeriesTest {
 
         int minRuntimeInGOTS5 = 60;
         assertEquals(minRuntimeInGOTS5, TVSeries.minRuntimeOfEpisodes(GAME_OF_THRONES.getEpisodes()[4]));
+
+    }
+
+    @Test
+    public void getMinRuntimeOfEmptySeries() throws AssertionError {
+
+        assertEquals(0, TVSeries.minRuntimeOfEpisodes(EMPTY_SERIES.getEpisodes()));
+
+    }
+
+    @Test
+    public void getMaxRuntimeOfEmptySeries() throws AssertionError {
+
+        assertEquals(0, TVSeries.maxRuntimeOfEpisodes(EMPTY_SERIES.getEpisodes()));
+
+    }
+
+    @Test
+    public void getAvgRuntimeOfEmptySeries() throws AssertionError {
+
+        assertEquals(0, TVSeries.averageRuntimeOfEpisodes(EMPTY_SERIES.getEpisodes()));
+
+    }
+
+    @Test
+    public void searchSeriesByContentTest() throws AssertionError {
+
+        TVSeries.TVEpisode[] episodeAfterJonDies = new TVSeries.TVEpisode[]
+                { GAME_OF_THRONES.getEpisode(6, 1) };
+
+        assertArrayEquals(episodeAfterJonDies, TVSeries.searchEpisodesByContents(
+                GAME_OF_THRONES.getEpisodes(), "jon snow is dead"));
+
+    }
+
+    @Test
+    public void searchSeasonByContent() throws AssertionError {
+
+        TVSeries.TVEpisode[] episodeWhereCerseiSitsOnThrone = new TVSeries.TVEpisode[]
+                { GAME_OF_THRONES.getEpisode(7, 7)};
+
+        assertArrayEquals(episodeWhereCerseiSitsOnThrone, TVSeries.searchEpisodesByContents(
+                GAME_OF_THRONES.getEpisodes()[6], "cersei sits on the iron throne"));
+
+    }
+
+    @Test
+    public void searchSeasonByNullContent() throws AssertionError {
+
+        assertArrayEquals(new TVSeries.TVEpisode[0],
+                TVSeries.searchEpisodesByContents(EMPTY_SERIES.getEpisodes(), null));
 
     }
 

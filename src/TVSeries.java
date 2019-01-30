@@ -780,6 +780,7 @@ public class TVSeries {
          */
         public void setSummary(final String summary) {
             if (summary != null) {
+                //Deletes HTML characters in the summary
                 this.summary = summary.replaceAll("(<[a-z]>)|(</[a-z]>)", "");
             } else {
                 this.summary = null;
