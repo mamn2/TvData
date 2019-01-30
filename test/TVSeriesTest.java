@@ -320,7 +320,7 @@ public class TVSeriesTest {
     public void getEpisodeByBadDateTest() throws AssertionError {
 
         assertArrayEquals(new TVSeries.TVEpisode[0],
-                TVSeries.getEpisodesOnDate(HOMELAND.getEpisodes(), "non-formatted"));
+                TVSeries.getEpisodesOnDate(HOMELAND.getEpisodes(), "nonformatted"));
 
     }
 

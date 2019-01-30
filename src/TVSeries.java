@@ -32,8 +32,9 @@ public class TVSeries {
     //Summary of series, e.g. "Mohamed the programmer encounters wild debugging in this new hit HBO series"
     private String seriesSummary;
 
-    /* All episodes in series organized by season and episode. Note the array is jagged meaning different seasons
-    may have different lengths and season/episodes start at 0 instead of 1 */
+    /* All episodes in series organized by season and episode.
+    Note the array may be jagged meaning different seasons may have different lengths.
+    Note that Season/episodes start at 0 instead of 1 */
     private TVEpisode[][] episodes;
 
     /**
@@ -154,6 +155,7 @@ public class TVSeries {
         try {
             return episodes[seasonNum - 1][episodeNum - 1];
         } catch (Exception e) {
+            //Exception occurs usually when the array is out of bounds.
             throw new IllegalArgumentException("Season/Episode number does not exist");
         }
 
@@ -196,7 +198,10 @@ public class TVSeries {
      * @param premiereDate is whenever the premiere date of the series is in the form YYYY-MM-DD.
      */
     public void setPremiereDate(final String premiereDate) {
-        this.premiereDate = premiereDate;
+        //Makes sure that the premiere date is in the form "YYYY-MM-DD"
+        if (premiereDate.matches("\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d")) {
+            this.premiereDate = premiereDate;
+        }
     }
 
     /**
@@ -221,6 +226,7 @@ public class TVSeries {
      */
     public void setSeriesSummary(final String seriesSummary) {
         if (seriesSummary != null) {
+            //Deletes all the HTML characters in the text to make it cleaner.
             this.seriesSummary = seriesSummary.replaceAll("(<[a-z]>)|(</[a-z]>)", "");
         } else {
             this.seriesSummary = null;
@@ -257,7 +263,7 @@ public class TVSeries {
                 }
             }
 
-            //array is jagged because different seasons may have different lengths.
+            //array may be jagged because different seasons may have different lengths.
             //Each season should only have a certain amount of episodes.
             TVEpisode[][] organizedEpisodeArray = new TVEpisode[numSeasons][];
             for (int season = 0; season < numSeasons; season++) {
@@ -307,6 +313,7 @@ public class TVSeries {
         newEpisodeList.add(newEpisode);
 
         //Uses the setEpisodes function to reinitialize episodes array
+        //Converts linked list to an array
         this.setEpisodes(newEpisodeList.toArray(new TVEpisode[newEpisodeList.size()]));
 
     }
@@ -327,14 +334,19 @@ public class TVSeries {
      */
     public static TVEpisode[] getEpisodesInYear(final TVEpisode[] episodes, final int year) {
 
+        //Stores all episodes in the given year
         LinkedList<TVEpisode> episodesInYear = new LinkedList<>();
 
-        for (TVEpisode episode : episodes) {
-            if (episode.getAirdate().substring(0, 4).equals(Integer.toString(year))) {
-                episodesInYear.add(episode);
+        if (episodes != null) {
+            for (TVEpisode episode : episodes) {
+                //Since the first 4 letters are the year, it compares this to the parameter
+                if (episode.getAirdate().substring(0, 4).equals(Integer.toString(year))) {
+                    episodesInYear.add(episode);
+                }
             }
         }
 
+        //Converting linked list to array and returning
         return episodesInYear.toArray(new TVEpisode[episodesInYear.size()]);
 
     }
@@ -361,10 +373,13 @@ public class TVSeries {
             LinkedList<TVEpisode> allEpisodesWithName = new LinkedList<>();
 
             for (TVEpisode episode: episodes) {
+                //Adds if the name is part of the episode name
                 if (episode.getEpisodeName().toUpperCase().contains(name.toUpperCase())) {
                     allEpisodesWithName.add(episode);
                 }
             }
+
+            //Converting linked list to array and returning
             return allEpisodesWithName.toArray(new TVEpisode[allEpisodesWithName.size()]);
         } else {
             return null;
@@ -378,34 +393,73 @@ public class TVSeries {
      * @param maxRuntimeMinutes is the maximum runtime the user permitted.
      * @return an array that includes the all episodes up to and including max runtime.
      */
-    public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[][] allEpisodes, int maxRuntimeMinutes) {
-
+    public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[][] allEpisodes, final int maxRuntimeMinutes) {
         return searchEpisodesByMaxRuntime(convert2DEpisodesTo1D(allEpisodes), maxRuntimeMinutes);
-
     }
 
     /**
      * Function to search for all episodes under or equaling a certain runtime.
-     * @param allEpisodes is all the episodes being searched for
+     * @param episodes is all the episodes being searched for
      * @param maxRuntimeMinutes is the max runtime as set by the caller of the function.
      * @return all episodes under or equaling a specified runtime.
      */
-    public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[] allEpisodes, int maxRuntimeMinutes) {
+    public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[] episodes, final int maxRuntimeMinutes) {
 
         LinkedList<TVEpisode> allEpisodesUnderMaxRuntime = new LinkedList<>();
 
-        if (allEpisodes != null) {
-            for (TVEpisode episode : allEpisodes) {
-                if (episode != null && episode.getRuntimeInMinutes() <= maxRuntimeMinutes) {
+        if (episodes != null) {
+            for (TVEpisode episode : episodes) {
+                if (episode.getRuntimeInMinutes() <= maxRuntimeMinutes) {
                     allEpisodesUnderMaxRuntime.add(episode);
                 }
             }
         }
 
+        //Converting linked list to array
         return allEpisodesUnderMaxRuntime.toArray(new TVEpisode[allEpisodesUnderMaxRuntime.size()]);
 
     }
 
+    /**
+     * Searches episodes for contents by looking through their summary
+     * @param episodes is all the episodes being searched thru in 2d array form
+     * @param contents is the contents you are searching for within the episodes
+     * @return all episodes that contain the given content
+     */
+    public static TVEpisode[] searchEpisodesByContents(final TVEpisode[][] episodes, final String contents) {
+        return searchEpisodesByContents(convert2DEpisodesTo1D(episodes), contents);
+    }
+
+    /**
+     * Searches episodes for contents by looking through their summary
+     * @param episodes is all the episodes being searched thru in 1d array form
+     * @param contents is the contents you are searching for within the episodes
+     * @return all episodes that contain the given content
+     */
+    public static TVEpisode[] searchEpisodesByContents(final TVEpisode[] episodes, final String contents) {
+
+        LinkedList<TVEpisode> episodesWithContent = new LinkedList<>();
+
+        if (episodes != null && contents != null) {
+            for (TVEpisode episode: episodes) {
+                if (episode.getSummary() != null
+                        && episode.getSummary().toUpperCase().contains(contents.toUpperCase())) {
+                    episodesWithContent.add(episode);
+                }
+            }
+        }
+
+        //Converts linked list to array and returns
+        return episodesWithContent.toArray(new TVEpisode[episodesWithContent.size()]);
+
+    }
+
+    /**
+     * Filter function to search for an episode on a given date.
+     * @param unsortedEpisodes is all the episodes being searched
+     * @param date is the date of the episode in the format: YYYY-MM-DD
+     * @return an array of episodes on that date in that instance of TVSeries.
+     */
     public static TVEpisode[] getEpisodesOnDate(TVEpisode[][] unsortedEpisodes, final String date) {
         return getEpisodesOnDate(convert2DEpisodesTo1D(unsortedEpisodes), date);
     }
@@ -419,14 +473,16 @@ public class TVSeries {
     public static TVEpisode[] getEpisodesOnDate(TVEpisode[] unsortedEpisodes, final String date) {
 
         LinkedList<TVEpisode> allEpisodesOnDate = new LinkedList<>();
+
         if (unsortedEpisodes != null) {
             for (TVEpisode episode : unsortedEpisodes) {
-                if (episode != null && episode.getAirdate() != null && episode.getAirdate().equals(date)) {
+                if (episode.getAirdate() != null && episode.getAirdate().equals(date)) {
                     allEpisodesOnDate.add(episode);
                 }
             }
         }
 
+        //Converts linked list to array
         return allEpisodesOnDate.toArray(new TVEpisode[allEpisodesOnDate.size()]);
 
     }
@@ -451,14 +507,15 @@ public class TVSeries {
      */
     public static TVEpisode[] searchEpisodesByCharacter(final TVEpisode[] unsortedEpisodes, final String character) {
 
-        if (character == null || character.length() == 0) {
+        if (character == null || character.length() == 0 || unsortedEpisodes == null) {
             return new TVEpisode[0];
         }
 
         LinkedList<TVEpisode> episodesWithCharacter = new LinkedList<>();
 
         for (TVEpisode episode : unsortedEpisodes) {
-            if (episode != null && episode.getSummary().toUpperCase().contains(character.toUpperCase())) {
+            if (episode.getSummary() != null
+                    && episode.getSummary().toUpperCase().contains(character.toUpperCase())) {
                 episodesWithCharacter.add(episode);
             }
         }
@@ -480,6 +537,7 @@ public class TVSeries {
 
         int totalNumEpisodes = 0;
         for (TVEpisode[] season : allEpisodes) {
+            //Adds by number of episodes in each season instead of iterating through all episodes
             totalNumEpisodes += season.length;
         }
 
@@ -509,9 +567,11 @@ public class TVSeries {
 
         int totalLengthOfSeries = 0;
         for (TVEpisode episode : episodes) {
+            //Adds the runtime of every episode combined
             totalLengthOfSeries += episode.getRuntimeInMinutes();
         }
 
+        //Returns the average by taking total runtime and dividing by number of episodes
         return totalLengthOfSeries / episodes.length;
 
     }
@@ -538,7 +598,9 @@ public class TVSeries {
 
         int currentMaxRuntime = 0;
         for (TVEpisode episode: episodes) {
-            currentMaxRuntime = episode.getRuntimeInMinutes();
+            if (episode.getRuntimeInMinutes() > currentMaxRuntime) {
+                currentMaxRuntime = episode.getRuntimeInMinutes();
+            }
         }
 
         return currentMaxRuntime;
@@ -565,9 +627,12 @@ public class TVSeries {
             return 0;
         }
 
+        //Starts at max possible runtime and works down from there
         int currentMinRuntime = maxRuntimeOfEpisodes(episodes);
         for (TVEpisode episode : episodes) {
-            currentMinRuntime = episode.getRuntimeInMinutes();
+            if (episode.getRuntimeInMinutes() < currentMinRuntime) {
+                currentMinRuntime = episode.getRuntimeInMinutes();
+            }
         }
 
         return currentMinRuntime;
@@ -700,10 +765,11 @@ public class TVSeries {
 
         /**
          * Setter for the airdate instance variable.
-         * @param airdate is the date the episode first aired in the form YYYY-MM-DD.
+         * @param airdate is the date the episode first aired. Must be in the form YYYY-MM-DD.
          */
         public void setAirdate(final String airdate) {
-            if (airdate.matches("\\d\\d\\d\\d-\\d\\d-\\d\\d")) {
+            //Makes sure that the airdate is in the form "YYYY-MM-DD"
+            if (airdate.matches("\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d")) {
                 this.airdate = airdate;
             }
         }
