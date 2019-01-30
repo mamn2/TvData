@@ -36,6 +36,10 @@ public class TVSeries {
     may have different lengths and season/episodes start at 0 instead of 1 */
     private TVEpisode[][] episodes;
 
+    /**
+     * Constructor for new TVSeries.
+     * @param seriesName is the name of the new series.
+     */
     public TVSeries (String seriesName) {
         this.seriesName = seriesName;
     }
@@ -313,7 +317,7 @@ public class TVSeries {
      * @return all the episodes from that series in the form of an array.
      */
     public static TVEpisode[] getEpisodesInYear(final TVEpisode[][] allEpisodes, final int year) {
-        return getEpisodesInYear(convert2DEpisodesto1D(allEpisodes), year);
+        return getEpisodesInYear(convert2DEpisodesTo1D(allEpisodes), year);
     }
 
     /**
@@ -342,7 +346,7 @@ public class TVSeries {
      * @return all episodes with the name in it
      */
     public static TVEpisode[] searchEpisodesByName(final TVEpisode[][] allEpisodes, final String name) {
-        return searchEpisodesByName(convert2DEpisodesto1D(allEpisodes), name);
+        return searchEpisodesByName(convert2DEpisodesTo1D(allEpisodes), name);
     }
 
     /**
@@ -376,7 +380,7 @@ public class TVSeries {
      */
     public static TVEpisode[] searchEpisodesByMaxRuntime(final TVEpisode[][] allEpisodes, int maxRuntimeMinutes) {
 
-        return searchEpisodesByMaxRuntime(convert2DEpisodesto1D(allEpisodes), maxRuntimeMinutes);
+        return searchEpisodesByMaxRuntime(convert2DEpisodesTo1D(allEpisodes), maxRuntimeMinutes);
 
     }
 
@@ -403,7 +407,7 @@ public class TVSeries {
     }
 
     public static TVEpisode[] getEpisodesOnDate(TVEpisode[][] unsortedEpisodes, final String date) {
-        return getEpisodesOnDate(convert2DEpisodesto1D(unsortedEpisodes), date);
+        return getEpisodesOnDate(convert2DEpisodesTo1D(unsortedEpisodes), date);
     }
 
     /**
@@ -435,7 +439,7 @@ public class TVSeries {
      * @return all the episodes that contain the given character.
      */
     public static TVEpisode[] searchEpisodesByCharacter(final TVEpisode[][] unsortedEpisodes, final String character) {
-        return searchEpisodesByCharacter(convert2DEpisodesto1D(unsortedEpisodes), character);
+        return searchEpisodesByCharacter(convert2DEpisodesTo1D(unsortedEpisodes), character);
     }
 
     /**
@@ -489,7 +493,7 @@ public class TVSeries {
      * @return the average runtime of all the episodes
      */
     public static int averageRuntimeOfEpisodes(final TVEpisode[][] episodes) {
-        return averageRuntimeOfEpisodes(convert2DEpisodesto1D(episodes));
+        return averageRuntimeOfEpisodes(convert2DEpisodesTo1D(episodes));
     }
 
     /**
@@ -518,7 +522,7 @@ public class TVSeries {
      * @return length in minutes of max runtime of episodes.
      */
     public static int maxRuntimeOfEpisodes(final TVEpisode[][] episodes) {
-        return maxRuntimeOfEpisodes(convert2DEpisodesto1D(episodes));
+        return maxRuntimeOfEpisodes(convert2DEpisodesTo1D(episodes));
     }
 
     /**
@@ -547,7 +551,7 @@ public class TVSeries {
      * @return length in minutes of min runtime of episodes.
      */
     public static int minRuntimeOfEpisodes(final TVEpisode[][] episodes) {
-        return minRuntimeOfEpisodes(convert2DEpisodesto1D(episodes));
+        return minRuntimeOfEpisodes(convert2DEpisodesTo1D(episodes));
     }
 
     /**
@@ -575,7 +579,7 @@ public class TVSeries {
      * @param episodes is a 2d array of episodes
      * @return a 1d array of episodes containing all the episodes given in the parameter
      */
-    public static TVEpisode[] convert2DEpisodesto1D(final TVEpisode[][] episodes) {
+    public static TVEpisode[] convert2DEpisodesTo1D(final TVEpisode[][] episodes) {
 
         if (episodes == null) {
             return null;
